@@ -1,0 +1,14 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+bin = "./tmp/main"
+cmd = "go build -o=./tmp/main ./cmd"
+delay = 1000
+exclude_dir = ["tmp", "testdata", "bin", "migrations", "public"]
+exclude_regex = ["_test.go"]
+rerun_delay = 500
+
+[misc]
+clean_on_exit = true
