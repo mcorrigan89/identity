@@ -1,0 +1,3 @@
+[submodule "serviceapis"]
+	path = serviceapis
+	url = https://github.com/mcorrigan89/serviceapis.git
