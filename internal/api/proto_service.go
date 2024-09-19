@@ -44,6 +44,6 @@ func (s *ProtoServer) Handle(r *http.ServeMux) {
 	reflectPathAlpha, reflectHandlerAlpha := grpcreflect.NewHandlerV1Alpha(reflector)
 	r.Handle(reflectPathAlpha, reflectHandlerAlpha)
 
-	scheduleV1Path, scheduleV1Handle := identityv1connect.NewIdentityServiceHandler(s.identityV1Server)
-	r.Handle(scheduleV1Path, scheduleV1Handle)
+	identityV1Path, identityV1Handle := identityv1connect.NewIdentityServiceHandler(s.identityV1Server)
+	r.Handle(identityV1Path, identityV1Handle)
 }
