@@ -4,6 +4,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/mcorrigan89/identity/internal/api"
 	"github.com/mcorrigan89/identity/internal/config"
 	"github.com/mcorrigan89/identity/internal/repositories"
 	"github.com/mcorrigan89/identity/internal/services"
@@ -11,10 +12,11 @@ import (
 )
 
 type application struct {
-	config   config.Config
-	wg       sync.WaitGroup
-	logger   *zerolog.Logger
-	services *services.Services
+	config      config.Config
+	wg          *sync.WaitGroup
+	logger      *zerolog.Logger
+	services    *services.Services
+	protoServer *api.ProtoServer
 }
 
 func main() {
@@ -35,11 +37,14 @@ func main() {
 
 	repositories := repositories.NewRepositories(db, &logger, &wg)
 	services := services.NewServices(&repositories, &cfg, &logger, &wg)
+	protoServer := api.NewProtoServer(&cfg, &logger, &wg, &services)
 
 	app := &application{
-		config:   cfg,
-		logger:   &logger,
-		services: &services,
+		wg:          &wg,
+		config:      cfg,
+		logger:      &logger,
+		services:    &services,
+		protoServer: protoServer,
 	}
 
 	err = app.serve()

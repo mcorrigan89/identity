@@ -3,13 +3,13 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/mcorrigan89/identity/api
+      value: github.com/mcorrigan89/identity/internal/api
 plugins:
   - local: protoc-gen-go
-    out: api
+    out: internal/api
     opt: paths=source_relative
   - local: protoc-gen-connect-go
-    out: api
+    out: internal/api
     opt: paths=source_relative
 inputs:
-  - directory: proto
+  - directory: serviceapis

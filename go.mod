@@ -3,6 +3,8 @@ module github.com/mcorrigan89/identity
 go 1.22.0
 
 require (
+	connectrpc.com/connect v1.16.2
+	connectrpc.com/grpcreflect v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
@@ -11,6 +13,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	golang.org/x/crypto v0.27.0
 	golang.org/x/net v0.29.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require (

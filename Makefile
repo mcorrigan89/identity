@@ -13,7 +13,9 @@ build:
 
 .PHONY: codegen
 codegen:
-	go run github.com/99designs/gqlgen
+	git submodule update --recursive --remote  
+	buf lint
+	buf generate --path serviceapis/serviceapis
 
 .PHONY: models
 models:
