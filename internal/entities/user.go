@@ -14,6 +14,7 @@ var (
 	ErrIncorrectProvider  = errors.New("incorrect provider")
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrDuplicateEmail     = errors.New("duplicate email")
+	ErrUserAlreadyCreated = errors.New("user already created")
 )
 
 var (

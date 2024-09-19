@@ -56,7 +56,13 @@ type CreateUserArgs struct {
 }
 
 func (service *UserService) CreateUser(ctx context.Context, args CreateUserArgs) (*entities.User, error) {
-	service.utils.logger.Info().Ctx(ctx).Interface("args", args).Msg("Creating user")
+
+	currentUser := usercontext.ContextGetUser(ctx)
+	if currentUser != nil {
+		service.utils.logger.Err(entities.ErrUserAlreadyCreated).Ctx(ctx).Str("currentUser", currentUser.ID.String()).Msg("User already created")
+		return nil, entities.ErrUserAlreadyCreated
+	}
+	service.utils.logger.Info().Ctx(ctx).Str("email", args.Email).Msg("Creating user")
 	user, err := service.userRepository.CreateUserPassword(ctx, repositories.CreateUserPasswordArgs{
 		GivenName:  args.GivenName,
 		FamilyName: args.FamilyName,
@@ -81,6 +87,9 @@ func (service *UserService) AuthenticateWithPassword(ctx context.Context, email 
 
 	err = user.ComparePassword(password)
 	if err != nil {
+		if err == entities.ErrInvalidCredentials {
+			return nil, entities.ErrInvalidCredentials
+		}
 		service.utils.logger.Err(err).Ctx(ctx).Msg("Failed to compare password")
 		return nil, err
 	}

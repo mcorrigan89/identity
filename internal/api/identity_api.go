@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	identityv1 "github.com/mcorrigan89/identity/internal/api/serviceapis/identity/v1"
 	"github.com/mcorrigan89/identity/internal/config"
+	"github.com/mcorrigan89/identity/internal/entities"
 	"github.com/mcorrigan89/identity/internal/services"
 
 	"github.com/rs/zerolog"
@@ -43,6 +44,9 @@ func (s *IdentityServerV1) GetUserById(ctx context.Context, req *connect.Request
 
 	userEntity, err := s.services.UserService.GetUserByID(ctx, userUuid)
 	if err != nil {
+		if err == entities.ErrUserNotFound {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
 		s.logger.Err(err).Ctx(ctx).Msg("Error getting user by ID")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -102,6 +106,12 @@ func (s *IdentityServerV1) AuthenticateWithPassword(ctx context.Context, req *co
 	sessionEntity, err := s.services.UserService.AuthenticateWithPassword(ctx, email, password)
 
 	if err != nil {
+		if err == entities.ErrUserNotFound {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
+		if err == entities.ErrInvalidCredentials {
+			return nil, connect.NewError(connect.CodeUnauthenticated, err)
+		}
 		s.logger.Err(err).Ctx(ctx).Msg("Error authenticating with password")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -144,6 +154,12 @@ func (s *IdentityServerV1) CreateUser(ctx context.Context, req *connect.Request[
 	})
 
 	if err != nil {
+		if err == entities.ErrDuplicateEmail {
+			return nil, connect.NewError(connect.CodeAlreadyExists, err)
+		}
+		if err == entities.ErrUserAlreadyCreated {
+			return nil, connect.NewError(connect.CodeUnavailable, err)
+		}
 		s.logger.Err(err).Ctx(ctx).Msg("Error creating user")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
