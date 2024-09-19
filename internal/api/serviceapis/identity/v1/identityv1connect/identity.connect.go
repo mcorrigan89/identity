@@ -36,6 +36,9 @@ const (
 	// IdentityServiceGetUserByIdProcedure is the fully-qualified name of the IdentityService's
 	// GetUserById RPC.
 	IdentityServiceGetUserByIdProcedure = "/serviceapis.identity.v1.IdentityService/GetUserById"
+	// IdentityServiceGetUserBySessionTokenProcedure is the fully-qualified name of the
+	// IdentityService's GetUserBySessionToken RPC.
+	IdentityServiceGetUserBySessionTokenProcedure = "/serviceapis.identity.v1.IdentityService/GetUserBySessionToken"
 	// IdentityServiceCreateUserProcedure is the fully-qualified name of the IdentityService's
 	// CreateUser RPC.
 	IdentityServiceCreateUserProcedure = "/serviceapis.identity.v1.IdentityService/CreateUser"
@@ -51,6 +54,7 @@ const (
 var (
 	identityServiceServiceDescriptor                          = v1.File_serviceapis_identity_v1_identity_proto.Services().ByName("IdentityService")
 	identityServiceGetUserByIdMethodDescriptor                = identityServiceServiceDescriptor.Methods().ByName("GetUserById")
+	identityServiceGetUserBySessionTokenMethodDescriptor      = identityServiceServiceDescriptor.Methods().ByName("GetUserBySessionToken")
 	identityServiceCreateUserMethodDescriptor                 = identityServiceServiceDescriptor.Methods().ByName("CreateUser")
 	identityServiceAuthenticateWithGoogleCodeMethodDescriptor = identityServiceServiceDescriptor.Methods().ByName("AuthenticateWithGoogleCode")
 	identityServiceAuthenticateWithPasswordMethodDescriptor   = identityServiceServiceDescriptor.Methods().ByName("AuthenticateWithPassword")
@@ -59,6 +63,7 @@ var (
 // IdentityServiceClient is a client for the serviceapis.identity.v1.IdentityService service.
 type IdentityServiceClient interface {
 	GetUserById(context.Context, *connect.Request[v1.GetUserByIdRequest]) (*connect.Response[v1.GetUserByIdResponse], error)
+	GetUserBySessionToken(context.Context, *connect.Request[v1.GetUserBySessionTokenRequest]) (*connect.Response[v1.GetUserBySessionTokenResponse], error)
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
 	AuthenticateWithGoogleCode(context.Context, *connect.Request[v1.AuthenticateWithGoogleCodeRequest]) (*connect.Response[v1.AuthenticateWithGoogleCodeResponse], error)
 	AuthenticateWithPassword(context.Context, *connect.Request[v1.AuthenticateWithPasswordRequest]) (*connect.Response[v1.AuthenticateWithPasswordResponse], error)
@@ -78,6 +83,12 @@ func NewIdentityServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+IdentityServiceGetUserByIdProcedure,
 			connect.WithSchema(identityServiceGetUserByIdMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getUserBySessionToken: connect.NewClient[v1.GetUserBySessionTokenRequest, v1.GetUserBySessionTokenResponse](
+			httpClient,
+			baseURL+IdentityServiceGetUserBySessionTokenProcedure,
+			connect.WithSchema(identityServiceGetUserBySessionTokenMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		createUser: connect.NewClient[v1.CreateUserRequest, v1.CreateUserResponse](
@@ -104,6 +115,7 @@ func NewIdentityServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 // identityServiceClient implements IdentityServiceClient.
 type identityServiceClient struct {
 	getUserById                *connect.Client[v1.GetUserByIdRequest, v1.GetUserByIdResponse]
+	getUserBySessionToken      *connect.Client[v1.GetUserBySessionTokenRequest, v1.GetUserBySessionTokenResponse]
 	createUser                 *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
 	authenticateWithGoogleCode *connect.Client[v1.AuthenticateWithGoogleCodeRequest, v1.AuthenticateWithGoogleCodeResponse]
 	authenticateWithPassword   *connect.Client[v1.AuthenticateWithPasswordRequest, v1.AuthenticateWithPasswordResponse]
@@ -112,6 +124,11 @@ type identityServiceClient struct {
 // GetUserById calls serviceapis.identity.v1.IdentityService.GetUserById.
 func (c *identityServiceClient) GetUserById(ctx context.Context, req *connect.Request[v1.GetUserByIdRequest]) (*connect.Response[v1.GetUserByIdResponse], error) {
 	return c.getUserById.CallUnary(ctx, req)
+}
+
+// GetUserBySessionToken calls serviceapis.identity.v1.IdentityService.GetUserBySessionToken.
+func (c *identityServiceClient) GetUserBySessionToken(ctx context.Context, req *connect.Request[v1.GetUserBySessionTokenRequest]) (*connect.Response[v1.GetUserBySessionTokenResponse], error) {
+	return c.getUserBySessionToken.CallUnary(ctx, req)
 }
 
 // CreateUser calls serviceapis.identity.v1.IdentityService.CreateUser.
@@ -134,6 +151,7 @@ func (c *identityServiceClient) AuthenticateWithPassword(ctx context.Context, re
 // service.
 type IdentityServiceHandler interface {
 	GetUserById(context.Context, *connect.Request[v1.GetUserByIdRequest]) (*connect.Response[v1.GetUserByIdResponse], error)
+	GetUserBySessionToken(context.Context, *connect.Request[v1.GetUserBySessionTokenRequest]) (*connect.Response[v1.GetUserBySessionTokenResponse], error)
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
 	AuthenticateWithGoogleCode(context.Context, *connect.Request[v1.AuthenticateWithGoogleCodeRequest]) (*connect.Response[v1.AuthenticateWithGoogleCodeResponse], error)
 	AuthenticateWithPassword(context.Context, *connect.Request[v1.AuthenticateWithPasswordRequest]) (*connect.Response[v1.AuthenticateWithPasswordResponse], error)
@@ -149,6 +167,12 @@ func NewIdentityServiceHandler(svc IdentityServiceHandler, opts ...connect.Handl
 		IdentityServiceGetUserByIdProcedure,
 		svc.GetUserById,
 		connect.WithSchema(identityServiceGetUserByIdMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	identityServiceGetUserBySessionTokenHandler := connect.NewUnaryHandler(
+		IdentityServiceGetUserBySessionTokenProcedure,
+		svc.GetUserBySessionToken,
+		connect.WithSchema(identityServiceGetUserBySessionTokenMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	identityServiceCreateUserHandler := connect.NewUnaryHandler(
@@ -173,6 +197,8 @@ func NewIdentityServiceHandler(svc IdentityServiceHandler, opts ...connect.Handl
 		switch r.URL.Path {
 		case IdentityServiceGetUserByIdProcedure:
 			identityServiceGetUserByIdHandler.ServeHTTP(w, r)
+		case IdentityServiceGetUserBySessionTokenProcedure:
+			identityServiceGetUserBySessionTokenHandler.ServeHTTP(w, r)
 		case IdentityServiceCreateUserProcedure:
 			identityServiceCreateUserHandler.ServeHTTP(w, r)
 		case IdentityServiceAuthenticateWithGoogleCodeProcedure:
@@ -190,6 +216,10 @@ type UnimplementedIdentityServiceHandler struct{}
 
 func (UnimplementedIdentityServiceHandler) GetUserById(context.Context, *connect.Request[v1.GetUserByIdRequest]) (*connect.Response[v1.GetUserByIdResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("serviceapis.identity.v1.IdentityService.GetUserById is not implemented"))
+}
+
+func (UnimplementedIdentityServiceHandler) GetUserBySessionToken(context.Context, *connect.Request[v1.GetUserBySessionTokenRequest]) (*connect.Response[v1.GetUserBySessionTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("serviceapis.identity.v1.IdentityService.GetUserBySessionToken is not implemented"))
 }
 
 func (UnimplementedIdentityServiceHandler) CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error) {

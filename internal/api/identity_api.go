@@ -63,6 +63,36 @@ func (s *IdentityServerV1) GetUserById(ctx context.Context, req *connect.Request
 	return res, nil
 }
 
+func (s *IdentityServerV1) GetUserBySessionToken(ctx context.Context, req *connect.Request[identityv1.GetUserBySessionTokenRequest]) (*connect.Response[identityv1.GetUserBySessionTokenResponse], error) {
+	token := req.Msg.Token
+	if token == "" {
+		err := errors.New("token is required")
+		s.logger.Err(err).Ctx(ctx).Msg("Token is required")
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	userEntity, _, err := s.services.UserService.GetUserBySessionToken(ctx, token)
+	if err != nil {
+		if err == entities.ErrUserNotFound {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
+		s.logger.Err(err).Ctx(ctx).Msg("Error getting user by session token")
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	res := connect.NewResponse(&identityv1.GetUserBySessionTokenResponse{
+		User: &identityv1.User{
+			Id:         userEntity.ID.String(),
+			GivenName:  userEntity.GivenName,
+			FamilyName: userEntity.FamilyName,
+			Email:      userEntity.Email,
+		},
+	})
+
+	res.Header().Set("Identity-Version", "v1")
+	return res, nil
+}
+
 func (s *IdentityServerV1) AuthenticateWithGoogleCode(ctx context.Context, req *connect.Request[identityv1.AuthenticateWithGoogleCodeRequest]) (*connect.Response[identityv1.AuthenticateWithGoogleCodeResponse], error) {
 	code := req.Msg.Code
 	if code == "" {
