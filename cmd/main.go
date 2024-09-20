@@ -21,10 +21,14 @@ type application struct {
 
 func main() {
 
+	logger := getLogger()
+
+	logger.Info().Msg("Starting server")
+
 	cfg := config.Config{}
 	config.LoadConfig(&cfg)
 
-	logger := getLogger()
+	logger.Info().Interface("config", cfg).Msg("Config")
 
 	db, err := openDBPool(&cfg)
 	if err != nil {

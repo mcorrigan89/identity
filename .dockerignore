@@ -2,3 +2,5 @@ Dockerfile
 .dockerignore
 tmp
 bin
+.env
+.env.example
