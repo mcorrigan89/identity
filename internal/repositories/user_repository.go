@@ -13,6 +13,9 @@ import (
 	"github.com/mcorrigan89/identity/internal/entities"
 	"github.com/mcorrigan89/identity/internal/repositories/models"
 	"github.com/rs/xid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,8 +34,12 @@ func NewUserRepository(utils ServicesUtils, db *pgxpool.Pool, queries *models.Qu
 }
 
 func (repo *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*entities.User, error) {
+	ctx, span := otel.Tracer("identityTracer").Start(ctx, "UserRepository.GetUserByID", trace.WithAttributes(attribute.String("userId", id.String())))
+	defer span.End()
+
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
+
 	row, err := repo.queries.GetUserByID(ctx, id)
 	if err != nil {
 		if err == pgx.ErrNoRows {

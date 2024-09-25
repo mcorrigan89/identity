@@ -12,12 +12,12 @@ import (
 )
 
 type OAuthService struct {
-	utils          ServicesUtils
+	utils          *ServicesUtils
 	userService    *UserService
 	userRepository *repositories.UserRepository
 }
 
-func NewOAuthService(utils ServicesUtils, userService *UserService, userRepo *repositories.UserRepository) *OAuthService {
+func NewOAuthService(utils *ServicesUtils, userService *UserService, userRepo *repositories.UserRepository) *OAuthService {
 	return &OAuthService{
 		utils:          utils,
 		userService:    userService,

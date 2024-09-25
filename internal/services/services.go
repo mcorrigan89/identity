@@ -15,7 +15,7 @@ type ServicesUtils struct {
 }
 
 type Services struct {
-	utils        ServicesUtils
+	utils        *ServicesUtils
 	UserService  *UserService
 	OAuthService *OAuthService
 }
@@ -27,11 +27,11 @@ func NewServices(repositories *repositories.Repositories, cfg *config.Config, lo
 		config: cfg,
 	}
 
-	userService := NewUserService(utils, repositories.UserRepository)
-	oAuthService := NewOAuthService(utils, userService, repositories.UserRepository)
+	userService := NewUserService(&utils, repositories.UserRepository)
+	oAuthService := NewOAuthService(&utils, userService, repositories.UserRepository)
 
 	return Services{
-		utils:        utils,
+		utils:        &utils,
 		UserService:  userService,
 		OAuthService: oAuthService,
 	}

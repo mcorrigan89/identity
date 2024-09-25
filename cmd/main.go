@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"sync"
 
@@ -9,17 +10,28 @@ import (
 	"github.com/mcorrigan89/identity/internal/repositories"
 	"github.com/mcorrigan89/identity/internal/services"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 type application struct {
-	config      config.Config
-	wg          *sync.WaitGroup
-	logger      *zerolog.Logger
-	services    *services.Services
-	protoServer *api.ProtoServer
+	config         config.Config
+	wg             *sync.WaitGroup
+	logger         *zerolog.Logger
+	tracerProvider *trace.TracerProvider
+	services       *services.Services
+	protoServer    *api.ProtoServer
 }
 
+const serviceName = "identity"
+
 func main() {
+	ctx := context.Background()
+
+	traceProvider, err := setupTracing(ctx, serviceName)
+	if err != nil {
+		panic(err)
+	}
+	defer traceProvider.Shutdown(ctx)
 
 	logger := getLogger()
 
@@ -27,8 +39,6 @@ func main() {
 
 	cfg := config.Config{}
 	config.LoadConfig(&cfg)
-
-	logger.Info().Interface("config", cfg).Msg("Config")
 
 	db, err := openDBPool(&cfg)
 	if err != nil {
@@ -44,11 +54,12 @@ func main() {
 	protoServer := api.NewProtoServer(&cfg, &logger, &wg, &services)
 
 	app := &application{
-		wg:          &wg,
-		config:      cfg,
-		logger:      &logger,
-		services:    &services,
-		protoServer: protoServer,
+		wg:             &wg,
+		config:         cfg,
+		logger:         &logger,
+		tracerProvider: traceProvider,
+		services:       &services,
+		protoServer:    protoServer,
 	}
 
 	err = app.serve()

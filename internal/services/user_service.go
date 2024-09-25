@@ -7,14 +7,15 @@ import (
 	"github.com/mcorrigan89/identity/internal/entities"
 	"github.com/mcorrigan89/identity/internal/repositories"
 	"github.com/mcorrigan89/identity/internal/usercontext"
+	"go.opentelemetry.io/otel"
 )
 
 type UserService struct {
-	utils          ServicesUtils
+	utils          *ServicesUtils
 	userRepository *repositories.UserRepository
 }
 
-func NewUserService(utils ServicesUtils, userRepo *repositories.UserRepository) *UserService {
+func NewUserService(utils *ServicesUtils, userRepo *repositories.UserRepository) *UserService {
 	return &UserService{
 		utils:          utils,
 		userRepository: userRepo,
@@ -22,6 +23,9 @@ func NewUserService(utils ServicesUtils, userRepo *repositories.UserRepository) 
 }
 
 func (service *UserService) GetUserByID(ctx context.Context, userId uuid.UUID) (*entities.User, error) {
+	ctx, span := otel.Tracer("identityTracer").Start(ctx, "UserService.GetUserByID")
+	defer span.End()
+
 	service.utils.logger.Info().Ctx(ctx).Str("userId", userId.String()).Msg("Getting user by ID")
 
 	user, err := service.userRepository.GetUserByID(ctx, userId)

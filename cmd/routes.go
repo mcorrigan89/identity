@@ -15,7 +15,7 @@ func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/ping", app.ping)
-	app.protoServer.Handle(mux)
+	app.protoServer.Handle(mux, app.tracerProvider)
 
 	return app.recoverPanic(app.enabledCORS(app.contextBuilder(mux)))
 }

@@ -4,11 +4,14 @@ import (
 	"net/http"
 	"sync"
 
+	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
+	"connectrpc.com/otelconnect"
 	identityv1connect "github.com/mcorrigan89/identity/internal/api/serviceapis/identity/v1/identityv1connect"
 	"github.com/mcorrigan89/identity/internal/config"
 	"github.com/mcorrigan89/identity/internal/services"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 type ProtoServer struct {
@@ -33,7 +36,7 @@ func NewProtoServer(cfg *config.Config, logger *zerolog.Logger, wg *sync.WaitGro
 	}
 }
 
-func (s *ProtoServer) Handle(r *http.ServeMux) {
+func (s *ProtoServer) Handle(r *http.ServeMux, tracerProvider *trace.TracerProvider) {
 
 	reflector := grpcreflect.NewStaticReflector(
 		"serviceapis.identity.v1.IdentityService",
@@ -44,6 +47,13 @@ func (s *ProtoServer) Handle(r *http.ServeMux) {
 	reflectPathAlpha, reflectHandlerAlpha := grpcreflect.NewHandlerV1Alpha(reflector)
 	r.Handle(reflectPathAlpha, reflectHandlerAlpha)
 
-	identityV1Path, identityV1Handle := identityv1connect.NewIdentityServiceHandler(s.identityV1Server)
+	otelInterceptor, err := otelconnect.NewInterceptor(
+		otelconnect.WithTracerProvider(tracerProvider),
+	)
+	if err != nil {
+		s.logger.Fatal().Err(err).Msg("Failed to create OpenTelemetry interceptor")
+	}
+
+	identityV1Path, identityV1Handle := identityv1connect.NewIdentityServiceHandler(s.identityV1Server, connect.WithInterceptors(otelInterceptor))
 	r.Handle(identityV1Path, identityV1Handle)
 }
